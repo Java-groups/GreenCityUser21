@@ -11,9 +11,14 @@ import greencity.security.dto.SuccessSignUpDto;
 import greencity.security.service.OwnSecurityService;
 import greencity.security.service.PasswordRecoveryService;
 import greencity.security.service.VerifyEmailService;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,14 +27,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Optional;
-
 import static greencity.constant.ErrorMessage.*;
 import static greencity.constant.ValidationConstants.USER_CREATED;
 
@@ -68,13 +68,14 @@ public class OwnSecurityController {
     /**
      * Method for sign-up by our security logic.
      *
-     * @param dto - {@link OwnSignUpDto} that have sign-up information.
+     * @Parameter dto - {@link OwnSignUpDto} that have sign-up information.
      * @return {@link ResponseEntity}
      */
-    @ApiOperation("Sign-up by own security logic")
+    @Operation(summary = "Sign-up by own security logic")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = USER_CREATED, response = SuccessSignUpDto.class),
-        @ApiResponse(code = 400, message = USER_ALREADY_REGISTERED_WITH_THIS_EMAIL)
+        @ApiResponse(responseCode = "201", description = USER_CREATED,
+            content = @Content(schema = @Schema(implementation = SuccessSignUpDto.class))),
+        @ApiResponse(responseCode = "400", description = USER_ALREADY_REGISTERED_WITH_THIS_EMAIL)
     })
     @PostMapping("/signUp")
     @ApiLocale
@@ -90,10 +91,11 @@ public class OwnSecurityController {
      *            employee.
      * @return {@link ResponseEntity}
      */
-    @ApiOperation("Sign-up employee by own security logic")
+    @Operation(summary = "Sign-up employee by own security logic")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = USER_CREATED, response = SuccessSignUpDto.class),
-        @ApiResponse(code = 400, message = USER_ALREADY_REGISTERED_WITH_THIS_EMAIL)
+        @ApiResponse(responseCode = "201", description = USER_CREATED,
+            content = @Content(schema = @Schema(implementation = SuccessSignUpDto.class))),
+        @ApiResponse(responseCode = "400", description = USER_ALREADY_REGISTERED_WITH_THIS_EMAIL)
     })
     @PostMapping("/sign-up-employee")
     @ApiLocale
@@ -108,10 +110,11 @@ public class OwnSecurityController {
      * @param dto - {@link OwnSignInDto} that have sign-in information.
      * @return {@link ResponseEntity}
      */
-    @ApiOperation("Sign-in by own security logic")
+    @Operation(summary = "Sign-in by own security logic")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK, response = SuccessSignInDto.class),
-        @ApiResponse(code = 400, message = HttpStatuses.BAD_REQUEST)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
+            content = @Content(schema = @Schema(implementation = SuccessSignInDto.class))),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     @PostMapping("/signIn")
     public SuccessSignInDto singIn(@Valid @RequestBody OwnSignInDto dto) {
@@ -124,10 +127,10 @@ public class OwnSecurityController {
      * @param token - {@link String} this is token (hash) to verify user.
      * @return {@link ResponseEntity}
      */
-    @ApiOperation("Verify email by email token (hash that contains link for verification)")
+    @Operation(summary = "Verify email by email token (hash that contains link for verification)")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 400, message = NO_ANY_EMAIL_TO_VERIFY_BY_THIS_TOKEN)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = NO_ANY_EMAIL_TO_VERIFY_BY_THIS_TOKEN)
     })
     @GetMapping("/verifyEmail")
     public ResponseEntity<Boolean> verify(@RequestParam @NotBlank String token,
@@ -141,10 +144,10 @@ public class OwnSecurityController {
      * @param refreshToken - {@link String} this is refresh token.
      * @return {@link ResponseEntity} - with new access token.
      */
-    @ApiOperation("Updating access token by refresh token")
+    @Operation(summary = "Updating access token by refresh token")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 400, message = REFRESH_TOKEN_NOT_VALID)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = REFRESH_TOKEN_NOT_VALID)
     })
     @GetMapping("/updateAccessToken")
     public ResponseEntity<Object> updateAccessToken(@RequestParam @NotBlank String refreshToken) {
@@ -158,10 +161,10 @@ public class OwnSecurityController {
      * @return - {@link ResponseEntity}
      * @author Dmytro Dovhal
      */
-    @ApiOperation("Sending email for restore password.")
+    @Operation(summary = "Sending email for restore password.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 400, message = USER_NOT_FOUND_BY_EMAIL)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = USER_NOT_FOUND_BY_EMAIL)
     })
     @GetMapping("/restorePassword")
     @ApiLocale
@@ -180,11 +183,11 @@ public class OwnSecurityController {
      * @return - {@link ResponseEntity}
      * @author Dmytro Dovhal
      */
-    @ApiOperation("Updating password for restore password option.")
+    @Operation(summary = "Updating password for restore password option.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 404, message = TOKEN_FOR_RESTORE_IS_INVALID),
-        @ApiResponse(code = 400, message = PASSWORD_DOES_NOT_MATCH)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "404", description = TOKEN_FOR_RESTORE_IS_INVALID),
+        @ApiResponse(responseCode = "400", description = PASSWORD_DOES_NOT_MATCH)
     })
     @PostMapping("/updatePassword")
     public ResponseEntity<Object> changePassword(@Valid @RequestBody OwnRestoreDto form) {
@@ -199,11 +202,11 @@ public class OwnSecurityController {
      * @return - {@link ResponseEntity}
      * @author Dmytro Dovhal
      */
-    @ApiOperation("Updating current password.")
+    @Operation(summary = "Updating current password.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 400, message = HttpStatuses.BAD_REQUEST),
-        @ApiResponse(code = 401, message = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @PutMapping("/changePassword")
     public ResponseEntity<Object> updatePassword(@Valid @RequestBody UpdatePasswordDto updateDto,
@@ -220,12 +223,13 @@ public class OwnSecurityController {
      * @return - {@link UserAdminRegistrationDto}
      * @author Orest Mamchuk
      */
-    @ApiOperation("Register new user.")
+    @Operation(summary = "Register new user.")
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = HttpStatuses.CREATED, response = UserAdminRegistrationDto.class),
-        @ApiResponse(code = 400, message = HttpStatuses.BAD_REQUEST),
-        @ApiResponse(code = 401, message = HttpStatuses.UNAUTHORIZED),
-        @ApiResponse(code = 403, message = HttpStatuses.FORBIDDEN)
+        @ApiResponse(responseCode = "201", description = HttpStatuses.CREATED,
+            content = @Content(schema = @Schema(implementation = UserAdminRegistrationDto.class))),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
     })
     @PostMapping("/register")
     public ResponseEntity<UserAdminRegistrationDto> managementRegisterUser(
@@ -238,10 +242,10 @@ public class OwnSecurityController {
      *
      * @return - {@link PasswordStatusDto}
      */
-    @ApiOperation("Get password status for current user.")
+    @Operation(summary = "Get password status for current user.")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = HttpStatuses.OK),
-        @ApiResponse(code = 401, message = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @GetMapping("/password-status")
     public ResponseEntity<PasswordStatusDto> passwordStatus(@ApiIgnore @AuthenticationPrincipal Principal principal) {
@@ -255,12 +259,12 @@ public class OwnSecurityController {
      * @param dto {@link SetPasswordDto} password to be set.
      * @return {@link ResponseEntity}
      */
-    @ApiOperation("Set password for user that doesn't have one.")
+    @Operation(summary = "Set password for user that doesn't have one.")
     @ResponseStatus(value = HttpStatus.CREATED)
     @ApiResponses(value = {
-        @ApiResponse(code = 201, message = HttpStatuses.CREATED),
-        @ApiResponse(code = 400, message = HttpStatuses.BAD_REQUEST),
-        @ApiResponse(code = 401, message = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "201", description = HttpStatuses.CREATED),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @PostMapping("/set-password")
     public ResponseEntity<Object> setPassword(@Valid @RequestBody SetPasswordDto dto,

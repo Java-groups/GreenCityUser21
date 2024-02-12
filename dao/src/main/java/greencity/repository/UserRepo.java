@@ -4,9 +4,7 @@ import greencity.dto.user.RegistrationStatisticsDtoResponse;
 import greencity.entity.User;
 import greencity.enums.EmailNotification;
 import greencity.enums.UserStatus;
-
 import java.time.LocalDateTime;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.NamedNativeQuery;
+import jakarta.persistence.NamedNativeQuery;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -119,7 +116,7 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
      */
     @Modifying
     @Transactional
-    @Query(value = "UPDATE User SET last_activity_time=:userLastActivityTime WHERE id=:userId")
+    @Query(value = "UPDATE User SET lastActivityTime=:userLastActivityTime WHERE id=:userId")
     void updateUserLastActivityTime(Long userId, LocalDateTime userLastActivityTime);
 
     /**

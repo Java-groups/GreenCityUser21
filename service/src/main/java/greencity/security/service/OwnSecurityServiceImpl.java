@@ -38,14 +38,12 @@ import greencity.security.repository.RestorePasswordEmailRepo;
 import greencity.service.EmailService;
 import greencity.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
@@ -57,7 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * {@inheritDoc}
+ * Service implementation for user based security.
  */
 @Service
 @Slf4j
@@ -99,9 +97,9 @@ public class OwnSecurityServiceImpl implements OwnSecurityService {
     }
 
     /**
-     * {@inheritDoc}
+     * Sign up in the application.
      *
-     * @return
+     * @return {@link SuccessSignUpDto}
      */
     @Transactional
     @Override
@@ -171,9 +169,9 @@ public class OwnSecurityServiceImpl implements OwnSecurityService {
     }
 
     /**
-     * {@inheritDoc}
+     * Sign up an employee in the application.
      *
-     * @return
+     * @return {@link SuccessSignUpDto}
      */
     public SuccessSignUpDto signUpEmployee(EmployeeSignUpDto employeeSignUpDto, String language) {
         String password = generatePassword();

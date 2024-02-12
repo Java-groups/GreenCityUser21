@@ -2,14 +2,14 @@ package greencity.mapping;
 
 import greencity.ModelUtils;
 import greencity.dto.user.UserVO;
-import greencity.entity.*;
+import greencity.entity.Language;
+import greencity.entity.OwnSecurity;
+import greencity.entity.User;
+import greencity.entity.VerifyEmail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)

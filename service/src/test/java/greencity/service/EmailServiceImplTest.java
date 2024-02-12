@@ -22,8 +22,8 @@ import org.mockito.Mock;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.ITemplateEngine;
 
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import java.util.*;
 import java.util.concurrent.Executors;
 

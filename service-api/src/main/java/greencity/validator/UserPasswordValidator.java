@@ -1,10 +1,9 @@
 package greencity.validator;
 
 import greencity.annotations.PasswordValidation;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.passay.*;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 public class UserPasswordValidator implements ConstraintValidator<PasswordValidation, String> {
     private PasswordValidator validator;

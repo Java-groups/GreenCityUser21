@@ -4,35 +4,12 @@ import greencity.dto.user.RegistrationStatisticsDtoResponse;
 import greencity.enums.EmailNotification;
 import greencity.enums.Role;
 import greencity.enums.UserStatus;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 import java.time.LocalDateTime;
-
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedNativeQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.SqlResultSetMapping;
-import javax.persistence.Table;
 
 @Entity
 @SqlResultSetMapping(
@@ -75,6 +52,7 @@ public class User {
     private Role role;
 
     @Enumerated(value = EnumType.ORDINAL)
+    @JdbcType(IntegerJdbcType.class)
     private UserStatus userStatus;
 
     @Column(nullable = false)
@@ -90,6 +68,7 @@ public class User {
     private RestorePasswordEmail restorePasswordEmail;
 
     @Enumerated(value = EnumType.ORDINAL)
+    @JdbcType(IntegerJdbcType.class)
     private EmailNotification emailNotification;
 
     @Column(name = "refresh_token_key", nullable = false)

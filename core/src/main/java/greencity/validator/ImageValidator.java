@@ -1,10 +1,9 @@
 package greencity.validator;
 
 import greencity.annotations.ImageValidation;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.List;
 

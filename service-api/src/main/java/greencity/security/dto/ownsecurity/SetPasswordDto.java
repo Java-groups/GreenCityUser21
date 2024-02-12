@@ -1,9 +1,8 @@
 package greencity.security.dto.ownsecurity;
 
 import greencity.annotations.PasswordValidation;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-
-import javax.validation.constraints.NotBlank;
 
 @Getter
 @Builder

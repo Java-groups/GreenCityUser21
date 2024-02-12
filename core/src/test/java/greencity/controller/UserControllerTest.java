@@ -397,7 +397,7 @@ class UserControllerTest {
         mockMvc.perform(get(userLink + "/findById")
             .param("id", "1"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType("application/json;charset=UTF-8"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(1L))
             .andExpect(jsonPath("$.name").value(TestConst.NAME))
             .andExpect(jsonPath("$.email").value(TestConst.EMAIL));

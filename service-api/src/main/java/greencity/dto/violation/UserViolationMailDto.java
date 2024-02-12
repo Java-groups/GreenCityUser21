@@ -1,6 +1,6 @@
 package greencity.dto.violation;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter

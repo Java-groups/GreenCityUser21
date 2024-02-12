@@ -3,7 +3,6 @@ package greencity.dto.user;
 import greencity.enums.Role;
 import greencity.enums.UserStatus;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
