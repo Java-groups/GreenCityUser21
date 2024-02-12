@@ -1,17 +1,16 @@
 package greencity.security.providers;
 
+import static greencity.constant.AppConstant.ROLE;
 import greencity.security.jwt.JwtTool;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import java.util.List;
+import javax.crypto.SecretKey;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import javax.crypto.SecretKey;
-import java.util.List;
-import java.util.stream.Collectors;
-import static greencity.constant.AppConstant.ROLE;
 
 /**
  * Class that provides authentication logic.
@@ -24,7 +23,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     /**
      * Constructor.
-     * 
+     *
      * @param jwtTool {@link JwtTool}
      */
     public JwtAuthenticationProvider(JwtTool jwtTool) {
@@ -39,7 +38,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
      * @return {@link Authentication} if user successfully authenticated.
      * @throws io.jsonwebtoken.ExpiredJwtException   - if the token expired.
      * @throws UnsupportedJwtException               if the argument does not
-     *                                               represent an Claims JWS
+     *                                               represent a Claims JWS
      * @throws io.jsonwebtoken.MalformedJwtException if the string is not a valid
      *                                               JWS
      * @throws io.jsonwebtoken.SignatureException    if the JWS signature validation
@@ -50,20 +49,21 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         SecretKey key = Keys.hmacShaKeyFor(jwtTool.getAccessTokenKey().getBytes());
 
         String email = Jwts.parser()
-            .verifyWith(key).build()
-            .parseSignedClaims(authentication.getName())
-            .getPayload()
-            .getSubject();
+                .verifyWith(key).build()
+                .parseSignedClaims(authentication.getName())
+                .getPayload()
+                .getSubject();
         @SuppressWarnings({"unchecked, rawtype"})
         List<String> authorities = (List<String>) Jwts.parser()
-            .verifyWith(key).build()
-            .parseSignedClaims(authentication.getName())
-            .getPayload()
-            .get(ROLE);
+                .verifyWith(key).build()
+                .parseSignedClaims(authentication.getName())
+                .getPayload()
+                .get(ROLE);
+
         return new UsernamePasswordAuthenticationToken(
-            email,
-            "",
-            authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+                email,
+                "",
+                authorities.stream().map(SimpleGrantedAuthority::new).toList());
     }
 
     /**

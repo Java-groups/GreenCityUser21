@@ -26,7 +26,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -90,6 +89,15 @@ public class SecurityConfig {
                 .accessDeniedHandler((req, resp, exc) -> resp.sendError(SC_FORBIDDEN, "You don't have authorities.")))
             .authorizeHttpRequests(req -> req
                 .requestMatchers("/static/css/**", "/static/img/**").permitAll()
+                .requestMatchers(
+                        "/v2/api-docs/**",
+                        "/v3/api-docs/**",
+                        "/swagger.json",
+                        "/swagger-ui.html").permitAll()
+                .requestMatchers(
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.GET,
                     "/ownSecurity/verifyEmail",
                     "/ownSecurity/updateAccessToken",
@@ -200,24 +208,6 @@ public class SecurityConfig {
                 .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
                 .anyRequest().hasAnyRole(ADMIN));
         return http.build();
-    }
-
-    /**
-     * Method for configure matchers that will be ignored in security.
-     *
-     * @return {@link WebSecurityCustomizer}
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> {
-            web.ignoring().requestMatchers("/v2/api-docs/**");
-            web.ignoring().requestMatchers("/v3/api-docs/**");
-            web.ignoring().requestMatchers("/swagger.json");
-            web.ignoring().requestMatchers("/swagger-ui.html");
-            web.ignoring().requestMatchers("/swagger-resources/**");
-            web.ignoring().requestMatchers("/webjars/**");
-            web.ignoring().requestMatchers("/swagger-ui/**");
-        };
     }
 
     /**

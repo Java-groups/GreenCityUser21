@@ -1,10 +1,15 @@
 package greencity.security.controller;
 
-import greencity.exception.exceptions.*;
+import greencity.exception.exceptions.EmailNotVerified;
+import greencity.exception.exceptions.LowRoleLevelException;
+import greencity.exception.exceptions.UserDeactivatedException;
+import greencity.exception.exceptions.WrongEmailException;
+import greencity.exception.exceptions.WrongPasswordException;
 import greencity.security.dto.SuccessSignInDto;
 import greencity.security.dto.ownsecurity.OwnSignInDto;
 import greencity.security.service.OwnSecurityService;
 import greencity.service.UserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +20,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import springfox.documentation.annotations.ApiIgnore;
 
 @Controller
-@ApiIgnore
+@Hidden
 @RequestMapping("/management")
 public class ManagementSecurityController {
     private final OwnSecurityService service;
@@ -61,7 +65,7 @@ public class ManagementSecurityController {
      */
     @PostMapping("/login")
     public String signIn(@Valid @ModelAttribute("signInForm") OwnSignInDto dto,
-        BindingResult bindingResult, Model model) {
+                         BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             return MANAGEMENT_LOGIN_PAGE;
         }
