@@ -65,7 +65,7 @@ public class ManagementSecurityController {
      */
     @PostMapping("/login")
     public String signIn(@Valid @ModelAttribute("signInForm") OwnSignInDto dto,
-                         BindingResult bindingResult, Model model) {
+        BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             return MANAGEMENT_LOGIN_PAGE;
         }

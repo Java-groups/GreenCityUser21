@@ -90,14 +90,16 @@ public class SecurityConfig {
             .authorizeHttpRequests(req -> req
                 .requestMatchers("/static/css/**", "/static/img/**").permitAll()
                 .requestMatchers(
-                        "/v2/api-docs/**",
-                        "/v3/api-docs/**",
-                        "/swagger.json",
-                        "/swagger-ui.html").permitAll()
+                    "/v2/api-docs/**",
+                    "/v3/api-docs/**",
+                    "/swagger.json",
+                    "/swagger-ui.html")
+                .permitAll()
                 .requestMatchers(
-                        "/swagger-resources/**",
-                        "/webjars/**",
-                        "/swagger-ui/**").permitAll()
+                    "/swagger-resources/**",
+                    "/webjars/**",
+                    "/swagger-ui/**")
+                .permitAll()
                 .requestMatchers(HttpMethod.GET,
                     "/ownSecurity/verifyEmail",
                     "/ownSecurity/updateAccessToken",

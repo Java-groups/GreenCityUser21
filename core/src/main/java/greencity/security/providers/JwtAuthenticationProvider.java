@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +39,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
      * @return {@link Authentication} if user successfully authenticated.
      * @throws io.jsonwebtoken.ExpiredJwtException   - if the token expired.
      * @throws UnsupportedJwtException               if the argument does not
-     *                                               represent a Claims JWS
+     *                                               represent an Claims JWS
      * @throws io.jsonwebtoken.MalformedJwtException if the string is not a valid
      *                                               JWS
      * @throws io.jsonwebtoken.SignatureException    if the JWS signature validation
@@ -49,21 +50,21 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         SecretKey key = Keys.hmacShaKeyFor(jwtTool.getAccessTokenKey().getBytes());
 
         String email = Jwts.parser()
-                .verifyWith(key).build()
-                .parseSignedClaims(authentication.getName())
-                .getPayload()
-                .getSubject();
+            .verifyWith(key).build()
+            .parseSignedClaims(authentication.getName())
+            .getPayload()
+            .getSubject();
         @SuppressWarnings({"unchecked, rawtype"})
         List<String> authorities = (List<String>) Jwts.parser()
-                .verifyWith(key).build()
-                .parseSignedClaims(authentication.getName())
-                .getPayload()
-                .get(ROLE);
+            .verifyWith(key).build()
+            .parseSignedClaims(authentication.getName())
+            .getPayload()
+            .get(ROLE);
 
         return new UsernamePasswordAuthenticationToken(
-                email,
-                "",
-                authorities.stream().map(SimpleGrantedAuthority::new).toList());
+            email,
+            "",
+            authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
     }
 
     /**

@@ -55,7 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service implementation for user based security.
+ * {@inheritDoc}
  */
 @Service
 @Slf4j
@@ -97,9 +97,7 @@ public class OwnSecurityServiceImpl implements OwnSecurityService {
     }
 
     /**
-     * Sign up in the application.
-     *
-     * @return {@link SuccessSignUpDto}
+     * {@inheritDoc}
      */
     @Transactional
     @Override
@@ -169,9 +167,7 @@ public class OwnSecurityServiceImpl implements OwnSecurityService {
     }
 
     /**
-     * Sign up an employee in the application.
-     *
-     * @return {@link SuccessSignUpDto}
+     * {@inheritDoc}
      */
     public SuccessSignUpDto signUpEmployee(EmployeeSignUpDto employeeSignUpDto, String language) {
         String password = generatePassword();
