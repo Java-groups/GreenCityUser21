@@ -43,6 +43,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 @AllArgsConstructor
+@CrossOrigin
 @Validated
 @Slf4j
 public class UserController {
