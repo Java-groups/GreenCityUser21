@@ -43,7 +43,6 @@ import static greencity.constant.ValidationConstants.USER_CREATED;
 @RequestMapping("/ownSecurity")
 @Validated
 @Slf4j
-@CrossOrigin
 public class OwnSecurityController {
     private final OwnSecurityService service;
     private final VerifyEmailService verifyEmailService;

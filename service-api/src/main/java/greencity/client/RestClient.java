@@ -23,7 +23,6 @@ import static greencity.constant.AppConstant.IMAGE;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@CrossOrigin
 public class RestClient {
     private final RestTemplate restTemplate;
     @Value("${greencity.server.address}")
