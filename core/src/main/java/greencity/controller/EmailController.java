@@ -57,6 +57,17 @@ public class EmailController {
      * @param message - object with all necessary data for sending email
      * @author Taras Kavkalo
      */
+    @Operation(
+            summary = "Change the status of a place and notify the author via email",
+            description = "This endpoint allows the user to change the status of a specified place. " +
+                    "Upon changing the status, an email notification is sent to the author. " +
+                    "The request body must contain the author's first name, the place name, " +
+                    "the new place status, and the author's email address."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+    })
     @PostMapping("/changePlaceStatus")
     public ResponseEntity<Object> changePlaceStatus(@Valid @RequestBody SendChangePlaceStatusEmailMessage message) {
         emailService.sendChangePlaceStatusEmail(message.getAuthorFirstName(), message.getPlaceName(),
