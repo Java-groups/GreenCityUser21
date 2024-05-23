@@ -20,9 +20,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -94,7 +96,7 @@ class EmailControllerTest {
     @Test
     void changePlaceStatus() throws Exception {
         String content = "{" +
-            "\"authorEmail\":\"string\"," +
+            "\"authorEmail\":\"test.email@gmail.com\"," +
             "\"authorFirstName\":\"string\"," +
             "\"placeName\":\"string\"," +
             "\"placeStatus\":\"string\"" +
@@ -108,6 +110,28 @@ class EmailControllerTest {
         verify(emailService).sendChangePlaceStatusEmail(
             message.getAuthorFirstName(), message.getPlaceName(),
             message.getPlaceStatus(), message.getAuthorEmail());
+    }
+
+    @Test
+    void changePlaceStatus_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+            "\"authorEmail\":\"string\"," +
+            "\"authorFirstName\":\"string\"," +
+            "\"placeName\":\"string\"," +
+            "\"placeStatus\":\"string\"" +
+            "}";
+
+        sentPostRequest(content, "/changePlaceStatus")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+
+    }
+
+    private ResultActions sentPostRequest(String content, String subLink) throws Exception {
+        return mockMvc.perform(post(LINK + subLink)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
     }
 
     @Test
