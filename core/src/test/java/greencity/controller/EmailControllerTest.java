@@ -169,6 +169,34 @@ class EmailControllerTest {
     }
 
     @Test
+    void changePlaceStatusTest_NotFound() throws Exception {
+        String content = "{" +
+                "\"authorEmail\":\"Admin1@gmail.com\"," +
+                "\"authorFirstName\":\"String\"," +
+                "\"placeName\":\"string\"," +
+                "\"placeStatus\":\"string\"" +
+                "}";
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        SendChangePlaceStatusEmailMessage message =
+                mapper.readValue(content, SendChangePlaceStatusEmailMessage.class);
+
+        String expectedErrorMessage =
+                String.format("%s/%s", ErrorMessage.USER_NOT_FOUND_BY_EMAIL, "Admin1@gmail.com");
+        doThrow(new NotFoundException(expectedErrorMessage))
+                .when(emailService)
+                .sendChangePlaceStatusEmail(message.getAuthorFirstName(), message.getPlaceName(),
+                message.getPlaceStatus(), message.getAuthorEmail());
+
+        mockErrorAttributes();
+
+        mockMvc.perform(post(String.format("%s/%s", LINK , "/changePlaceStatus"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void changePlaceStatus_ExpectedBadRequest() throws Exception {
         String content = "{" +
             "\"authorEmail\":\"string\"," +
