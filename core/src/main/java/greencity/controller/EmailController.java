@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/email")
 @RequiredArgsConstructor
 public class EmailController {
-
     private final EmailService emailService;
 
     /**
@@ -81,8 +80,17 @@ public class EmailController {
      *                              email
      * @author Taras Kavkalo
      */
+    @Operation(
+            summary = "Send habit notification email",
+            description = "This endpoint allows the user to send a habit notification email to a specified recipient. " +
+                    "The request body must contain the recipient's name and email address."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+    })
     @PostMapping("/sendHabitNotification")
-    public ResponseEntity<Object> sendHabitNotification(@RequestBody SendHabitNotification sendHabitNotification) {
+    public ResponseEntity<Object> sendHabitNotification(@Valid @RequestBody SendHabitNotification sendHabitNotification) {
         emailService.sendHabitNotification(sendHabitNotification.getName(), sendHabitNotification.getEmail());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
