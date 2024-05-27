@@ -111,6 +111,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/error",
                                 "/ownSecurity/verifyEmail",
                                 "/ownSecurity/updateAccessToken",
                                 "/ownSecurity/restorePassword",
