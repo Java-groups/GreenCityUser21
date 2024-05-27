@@ -30,11 +30,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-<<<<<<< bugfix/208_-_Incorrect_behavior_of_AddEcoNews_end-point_Need_response_404_not_found
 import static org.mockito.Mockito.when;
-=======
 import static org.mockito.Mockito.verifyNoInteractions;
->>>>>>> dev
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -213,6 +210,28 @@ class EmailControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(emailService);
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedNotFound() throws Exception {
+        String content = "{" +
+                "\"email\":\"1111@gmail.com\"," +
+                "\"name\":\"String\"" +
+                "}";
+
+        String email = "1111@gmail.com";
+        String name = "String";
+
+        doThrow(new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email)).when(emailService).sendHabitNotification(name, email);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("timestamp", "timestamp");
+        map.put("trace", "trace");
+        map.put("path", "path");
+        map.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(map);
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isNotFound());
     }
 
     private ResultActions sentPostRequest(String content, String subLink) throws Exception {

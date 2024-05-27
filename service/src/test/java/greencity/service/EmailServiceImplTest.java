@@ -160,8 +160,28 @@ class EmailServiceImplTest {
 
     @Test
     void sendHabitNotification() {
-        service.sendHabitNotification("userName", "userEmail");
+        String userName = "userName";
+        String userEmail = "userEmail";
+
+        User user = new User();
+        when(userRepo.findByEmail(userEmail)).thenReturn(Optional.of(user));
+
+        service.sendHabitNotification(userName, userEmail);
         verify(javaMailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedNotFound() {
+        String userName = "test user name";
+        String userEmail = "test user email";
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + userEmail;
+        when(userRepo.findByEmail(userEmail)).thenThrow(new NotFoundException(expectedErrorMessage));
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> service.sendHabitNotification(userName, userEmail));
+
+        assertEquals(expectedErrorMessage, ex.getMessage());
     }
 
     @Test
