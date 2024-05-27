@@ -128,12 +128,6 @@ class EmailControllerTest {
 
     }
 
-    private ResultActions sentPostRequest(String content, String subLink) throws Exception {
-        return mockMvc.perform(post(LINK + subLink)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-    }
-
     @Test
     void sendHabitNotification() throws Exception {
         String content = "{" +
