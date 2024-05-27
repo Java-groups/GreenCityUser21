@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -84,5 +85,13 @@ public class UserControllerWithSecurityConfigTest {
                         .with(anonymous()))
                 .andExpect(status().isUnauthorized());
         verify(userService, times(0)).getEmailNotificationsStatuses();
+    }
+
+    @Test
+    @WithAnonymousUser
+    void updateUserProfilePicture_isUnauthorized() throws Exception {
+        mockMvc.perform(patch(userLink + "/profilePicture")
+                .with(anonymous()))
+                .andExpect(status().isUnauthorized());
     }
 }
