@@ -42,6 +42,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import static org.springframework.util.StringUtils.hasText;
+import static org.springframework.util.StringUtils.isEmpty;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -71,6 +74,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserVO save(UserVO userVO) {
+        if (userRepo.findById(userVO.getId()).isPresent() || userRepo.findByEmail(userVO.getEmail()).isPresent()) {
+            throw new UserAlreadyRegisteredException(ErrorMessage.USER_ALREADY_REGISTERED_WITH_THIS_EMAIL_OR_ID);
+        }
         User user = modelMapper.map(userVO, User.class);
         return modelMapper.map(userRepo.save(user), UserVO.class);
     }
@@ -241,7 +247,7 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     private void setValueIfNotEmpty(List<SearchCriteria> searchCriteria, String key, String value) {
-        if (StringUtils.hasText(value)) {
+        if (hasText(value)) {
             searchCriteria.add(SearchCriteria.builder()
                 .key(key)
                 .type(key)
