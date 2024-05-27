@@ -11,17 +11,16 @@ import greencity.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/email")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EmailController {
-    @Autowired
     private final EmailService emailService;
 
     /**
@@ -56,8 +55,19 @@ public class EmailController {
      * @param message - object with all necessary data for sending email
      * @author Taras Kavkalo
      */
+    @Operation(
+            summary = "Change the status of a place and notify the author via email",
+            description = "This endpoint allows the user to change the status of a specified place. " +
+                    "Upon changing the status, an email notification is sent to the author. " +
+                    "The request body must contain the author's first name, the place name, " +
+                    "the new place status, and the author's email address."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+    })
     @PostMapping("/changePlaceStatus")
-    public ResponseEntity<Object> changePlaceStatus(@RequestBody SendChangePlaceStatusEmailMessage message) {
+    public ResponseEntity<Object> changePlaceStatus(@Valid @RequestBody SendChangePlaceStatusEmailMessage message) {
         emailService.sendChangePlaceStatusEmail(message.getAuthorFirstName(), message.getPlaceName(),
             message.getPlaceStatus(), message.getAuthorEmail());
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -70,8 +80,18 @@ public class EmailController {
      *                              email
      * @author Taras Kavkalo
      */
+    @Operation(
+            summary = "Send habit notification email",
+            description = "This endpoint allows the user to send a habit notification email to a specified recipient. " +
+                    "The request body must contain the recipient's name and email address."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
     @PostMapping("/sendHabitNotification")
-    public ResponseEntity<Object> sendHabitNotification(@RequestBody SendHabitNotification sendHabitNotification) {
+    public ResponseEntity<Object> sendHabitNotification(@Valid @RequestBody SendHabitNotification sendHabitNotification) {
         emailService.sendHabitNotification(sendHabitNotification.getName(), sendHabitNotification.getEmail());
         return ResponseEntity.status(HttpStatus.OK).build();
     }

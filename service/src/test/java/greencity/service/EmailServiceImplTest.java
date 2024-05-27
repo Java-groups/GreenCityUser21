@@ -107,10 +107,30 @@ class EmailServiceImplTest {
     void sendCreatedNewsForAuthorTest() {
         EcoNewsForSendEmailDto dto = new EcoNewsForSendEmailDto();
         PlaceAuthorDto placeAuthorDto = new PlaceAuthorDto();
-        placeAuthorDto.setEmail("test@gmail.com");
+        String authorEmail = "test@gmail.com";
+        placeAuthorDto.setEmail(authorEmail);
         dto.setAuthor(placeAuthorDto);
+        User user = new User();
+        when(userRepo.findByEmail(authorEmail)).thenReturn(Optional.of(user));
         service.sendCreatedNewsForAuthor(dto);
         verify(javaMailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendCreatedNewsForAuthorTest_EmailNotFound() {
+        EcoNewsForSendEmailDto dto = new EcoNewsForSendEmailDto();
+        PlaceAuthorDto placeAuthorDto = new PlaceAuthorDto();
+        String authorEmail = "test@gmail.com";
+        placeAuthorDto.setEmail(authorEmail);
+        dto.setAuthor(placeAuthorDto);
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + authorEmail;
+        when(userRepo.findByEmail(authorEmail)).thenThrow(new NotFoundException(expectedErrorMessage));
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> service.sendCreatedNewsForAuthor(dto));
+
+        assertEquals(expectedErrorMessage, ex.getMessage());
     }
 
     @Test

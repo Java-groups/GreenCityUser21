@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -160,7 +161,8 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
             content = @Content(schema = @Schema(implementation = EmailNotification[].class))),
         @ApiResponse(responseCode = "303", description = HttpStatuses.SEE_OTHER),
-        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @GetMapping("emailNotifications")
     public ResponseEntity<List<EmailNotification>> getEmailNotifications() {

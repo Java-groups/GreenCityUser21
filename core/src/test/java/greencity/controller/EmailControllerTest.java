@@ -3,9 +3,12 @@ package greencity.controller;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import greencity.constant.ErrorMessage;
 import greencity.dto.econews.EcoNewsForSendEmailDto;
 import greencity.dto.notification.NotificationDto;
 import greencity.dto.violation.UserViolationMailDto;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.handler.CustomExceptionHandler;
 import greencity.message.SendChangePlaceStatusEmailMessage;
 import greencity.message.SendHabitNotification;
 import greencity.message.SendReportEmailMessage;
@@ -17,14 +20,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class EmailControllerTest {
@@ -37,11 +49,15 @@ class EmailControllerTest {
     @InjectMocks
     private EmailController emailController;
 
+    @Mock
+    private ErrorAttributes errorAttributes;
+
     @BeforeEach
     void setUp() {
         this.mockMvc = MockMvcBuilders
             .standaloneSetup(emailController)
             .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setControllerAdvice(new CustomExceptionHandler(errorAttributes))
             .build();
     }
 
@@ -64,6 +80,48 @@ class EmailControllerTest {
         EcoNewsForSendEmailDto message = objectMapper.readValue(content, EcoNewsForSendEmailDto.class);
 
         verify(emailService).sendCreatedNewsForAuthor(message);
+    }
+
+    @Test
+    void addEcoNewsTest_NotFound() throws Exception {
+        String content = "{\n" +
+                "\"author\": {\n" +
+                "\"email\": \"Test34211@gmail.com\",\n" +
+                "\"id\": 15,\n" +
+                "\"name\": \"Test1526435\"\n" +
+                "},\n" +
+                "\"creationDate\": \"2023-08-23T11:46:06.482Z\",\n" +
+                "\"imagePath\": \"string\",\n" +
+                "\"source\": \"string\",\n" +
+                "\"text\": \"Test1241254125125125124\",\n" +
+                "\"title\": \"Test1111\",\n" +
+                "\"unsubscribeToken\": \"string\"\n" +
+                "}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        EcoNewsForSendEmailDto dto = mapper.readValue(content, EcoNewsForSendEmailDto.class);
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + "Test34211@gmail.com";
+        doThrow(new NotFoundException(expectedErrorMessage))
+                .when(emailService)
+                .sendCreatedNewsForAuthor(dto);
+
+        mockErrorAttributes();
+
+        mockMvc.perform(post(LINK + "/addEcoNews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound());
+    }
+
+    private void mockErrorAttributes() {
+        Map<String, Object> errorAttributesMap = new HashMap<>();
+        errorAttributesMap.put("timestamp", "timestamp");
+        errorAttributesMap.put("trace", "trace");
+        errorAttributesMap.put("path", "path");
+        errorAttributesMap.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(errorAttributesMap);
     }
 
     @Test
@@ -94,8 +152,8 @@ class EmailControllerTest {
     @Test
     void changePlaceStatus() throws Exception {
         String content = "{" +
-            "\"authorEmail\":\"string\"," +
-            "\"authorFirstName\":\"string\"," +
+            "\"authorEmail\":\"test.email@gmail.com\"," +
+            "\"authorFirstName\":\"String\"," +
             "\"placeName\":\"string\"," +
             "\"placeStatus\":\"string\"" +
             "}";
@@ -111,10 +169,26 @@ class EmailControllerTest {
     }
 
     @Test
+    void changePlaceStatus_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+            "\"authorEmail\":\"string\"," +
+            "\"authorFirstName\":\"string\"," +
+            "\"placeName\":\"string\"," +
+            "\"placeStatus\":\"string\"" +
+            "}";
+
+        sentPostRequest(content, "/changePlaceStatus")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+
+    }
+
+    @Test
     void sendHabitNotification() throws Exception {
         String content = "{" +
-            "\"email\":\"string\"," +
-            "\"name\":\"string\"" +
+            "\"email\":\"test.email@gmail.com\"," +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");
@@ -123,6 +197,25 @@ class EmailControllerTest {
             new ObjectMapper().readValue(content, SendHabitNotification.class);
 
         verify(emailService).sendHabitNotification(notification.getName(), notification.getEmail());
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+                "\"email\":\"string\"," +
+                "\"name\":\"string\"" +
+                "}";
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+    }
+
+    private ResultActions sentPostRequest(String content, String subLink) throws Exception {
+        return mockMvc.perform(post(LINK + subLink)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
     }
 
     private void mockPerform(String content, String subLink) throws Exception {
