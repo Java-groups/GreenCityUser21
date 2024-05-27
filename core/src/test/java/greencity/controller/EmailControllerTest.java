@@ -116,7 +116,7 @@ class EmailControllerTest {
     void sendHabitNotification() throws Exception {
         String content = "{" +
             "\"email\":\"test.email@gmail.com\"," +
-            "\"name\":\"string\"" +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");
