@@ -3,9 +3,12 @@ package greencity.controller;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import greencity.constant.ErrorMessage;
 import greencity.dto.econews.EcoNewsForSendEmailDto;
 import greencity.dto.notification.NotificationDto;
 import greencity.dto.violation.UserViolationMailDto;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.handler.CustomExceptionHandler;
 import greencity.message.SendChangePlaceStatusEmailMessage;
 import greencity.message.SendHabitNotification;
 import greencity.message.SendReportEmailMessage;
@@ -17,16 +20,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+<<<<<<< bugfix/208_-_Incorrect_behavior_of_AddEcoNews_end-point_Need_response_404_not_found
+import static org.mockito.Mockito.when;
+=======
 import static org.mockito.Mockito.verifyNoInteractions;
+>>>>>>> dev
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class EmailControllerTest {
@@ -39,11 +52,15 @@ class EmailControllerTest {
     @InjectMocks
     private EmailController emailController;
 
+    @Mock
+    private ErrorAttributes errorAttributes;
+
     @BeforeEach
     void setUp() {
         this.mockMvc = MockMvcBuilders
             .standaloneSetup(emailController)
             .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setControllerAdvice(new CustomExceptionHandler(errorAttributes))
             .build();
     }
 
@@ -66,6 +83,48 @@ class EmailControllerTest {
         EcoNewsForSendEmailDto message = objectMapper.readValue(content, EcoNewsForSendEmailDto.class);
 
         verify(emailService).sendCreatedNewsForAuthor(message);
+    }
+
+    @Test
+    void addEcoNewsTest_NotFound() throws Exception {
+        String content = "{\n" +
+                "\"author\": {\n" +
+                "\"email\": \"Test34211@gmail.com\",\n" +
+                "\"id\": 15,\n" +
+                "\"name\": \"Test1526435\"\n" +
+                "},\n" +
+                "\"creationDate\": \"2023-08-23T11:46:06.482Z\",\n" +
+                "\"imagePath\": \"string\",\n" +
+                "\"source\": \"string\",\n" +
+                "\"text\": \"Test1241254125125125124\",\n" +
+                "\"title\": \"Test1111\",\n" +
+                "\"unsubscribeToken\": \"string\"\n" +
+                "}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        EcoNewsForSendEmailDto dto = mapper.readValue(content, EcoNewsForSendEmailDto.class);
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + "Test34211@gmail.com";
+        doThrow(new NotFoundException(expectedErrorMessage))
+                .when(emailService)
+                .sendCreatedNewsForAuthor(dto);
+
+        mockErrorAttributes();
+
+        mockMvc.perform(post(LINK + "/addEcoNews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound());
+    }
+
+    private void mockErrorAttributes() {
+        Map<String, Object> errorAttributesMap = new HashMap<>();
+        errorAttributesMap.put("timestamp", "timestamp");
+        errorAttributesMap.put("trace", "trace");
+        errorAttributesMap.put("path", "path");
+        errorAttributesMap.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(errorAttributesMap);
     }
 
     @Test
