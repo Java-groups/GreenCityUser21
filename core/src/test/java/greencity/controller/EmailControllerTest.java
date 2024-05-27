@@ -24,12 +24,17 @@ import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+<<<<<<< bugfix/208_-_Incorrect_behavior_of_AddEcoNews_end-point_Need_response_404_not_found
 import static org.mockito.Mockito.when;
+=======
+import static org.mockito.Mockito.verifyNoInteractions;
+>>>>>>> dev
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -150,8 +155,8 @@ class EmailControllerTest {
     @Test
     void changePlaceStatus() throws Exception {
         String content = "{" +
-            "\"authorEmail\":\"string\"," +
-            "\"authorFirstName\":\"string\"," +
+            "\"authorEmail\":\"test.email@gmail.com\"," +
+            "\"authorFirstName\":\"String\"," +
             "\"placeName\":\"string\"," +
             "\"placeStatus\":\"string\"" +
             "}";
@@ -167,10 +172,26 @@ class EmailControllerTest {
     }
 
     @Test
+    void changePlaceStatus_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+            "\"authorEmail\":\"string\"," +
+            "\"authorFirstName\":\"string\"," +
+            "\"placeName\":\"string\"," +
+            "\"placeStatus\":\"string\"" +
+            "}";
+
+        sentPostRequest(content, "/changePlaceStatus")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+
+    }
+
+    @Test
     void sendHabitNotification() throws Exception {
         String content = "{" +
-            "\"email\":\"string\"," +
-            "\"name\":\"string\"" +
+            "\"email\":\"test.email@gmail.com\"," +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");
@@ -179,6 +200,25 @@ class EmailControllerTest {
             new ObjectMapper().readValue(content, SendHabitNotification.class);
 
         verify(emailService).sendHabitNotification(notification.getName(), notification.getEmail());
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+                "\"email\":\"string\"," +
+                "\"name\":\"string\"" +
+                "}";
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+    }
+
+    private ResultActions sentPostRequest(String content, String subLink) throws Exception {
+        return mockMvc.perform(post(LINK + subLink)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
     }
 
     private void mockPerform(String content, String subLink) throws Exception {
