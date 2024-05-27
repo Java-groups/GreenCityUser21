@@ -30,11 +30,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-<<<<<<< bugfix/208_-_Incorrect_behavior_of_AddEcoNews_end-point_Need_response_404_not_found
 import static org.mockito.Mockito.when;
-=======
 import static org.mockito.Mockito.verifyNoInteractions;
->>>>>>> dev
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
