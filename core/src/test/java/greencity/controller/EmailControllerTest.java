@@ -20,9 +20,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -113,8 +115,8 @@ class EmailControllerTest {
     @Test
     void sendHabitNotification() throws Exception {
         String content = "{" +
-            "\"email\":\"string\"," +
-            "\"name\":\"string\"" +
+            "\"email\":\"test.email@gmail.com\"," +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");
@@ -123,6 +125,25 @@ class EmailControllerTest {
             new ObjectMapper().readValue(content, SendHabitNotification.class);
 
         verify(emailService).sendHabitNotification(notification.getName(), notification.getEmail());
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedBadRequest() throws Exception {
+        String content = "{" +
+                "\"email\":\"string\"," +
+                "\"name\":\"string\"" +
+                "}";
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(emailService);
+    }
+
+    private ResultActions sentPostRequest(String content, String subLink) throws Exception {
+        return mockMvc.perform(post(LINK + subLink)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
     }
 
     private void mockPerform(String content, String subLink) throws Exception {
