@@ -1,6 +1,7 @@
 package greencity.service;
 
 import greencity.ModelUtils;
+import greencity.constant.ErrorMessage;
 import greencity.dto.category.CategoryDto;
 import greencity.dto.econews.AddEcoNewsDtoResponse;
 import greencity.dto.econews.EcoNewsForSendEmailDto;
@@ -27,6 +28,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.*;
 import java.util.concurrent.Executors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -63,8 +65,28 @@ class EmailServiceImplTest {
         String placeName = "test place name";
         String placeStatus = "test place status";
         String authorEmail = "test author email";
+
+        User user = new User();
+        when(userRepo.findByEmail(authorEmail)).thenReturn(Optional.of(user));
+
         service.sendChangePlaceStatusEmail(authorFirstName, placeName, placeStatus, authorEmail);
         verify(javaMailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendChangePlaceStatusEmailTest_NotFoundEmail() {
+        String authorFirstName = "test author first name";
+        String placeName = "test place name";
+        String placeStatus = "test place status";
+        String authorEmail = "test author email";
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + authorEmail;
+        when(userRepo.findByEmail(authorEmail)).thenThrow(new NotFoundException(expectedErrorMessage));
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> service.sendChangePlaceStatusEmail(authorFirstName, placeName, placeStatus, authorEmail));
+
+        assertEquals(expectedErrorMessage, ex.getMessage());
     }
 
     @Test
@@ -85,10 +107,30 @@ class EmailServiceImplTest {
     void sendCreatedNewsForAuthorTest() {
         EcoNewsForSendEmailDto dto = new EcoNewsForSendEmailDto();
         PlaceAuthorDto placeAuthorDto = new PlaceAuthorDto();
-        placeAuthorDto.setEmail("test@gmail.com");
+        String authorEmail = "test@gmail.com";
+        placeAuthorDto.setEmail(authorEmail);
         dto.setAuthor(placeAuthorDto);
+        User user = new User();
+        when(userRepo.findByEmail(authorEmail)).thenReturn(Optional.of(user));
         service.sendCreatedNewsForAuthor(dto);
         verify(javaMailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendCreatedNewsForAuthorTest_EmailNotFound() {
+        EcoNewsForSendEmailDto dto = new EcoNewsForSendEmailDto();
+        PlaceAuthorDto placeAuthorDto = new PlaceAuthorDto();
+        String authorEmail = "test@gmail.com";
+        placeAuthorDto.setEmail(authorEmail);
+        dto.setAuthor(placeAuthorDto);
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + authorEmail;
+        when(userRepo.findByEmail(authorEmail)).thenThrow(new NotFoundException(expectedErrorMessage));
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> service.sendCreatedNewsForAuthor(dto));
+
+        assertEquals(expectedErrorMessage, ex.getMessage());
     }
 
     @Test
@@ -138,8 +180,28 @@ class EmailServiceImplTest {
 
     @Test
     void sendHabitNotification() {
-        service.sendHabitNotification("userName", "userEmail");
+        String userName = "userName";
+        String userEmail = "userEmail";
+
+        User user = new User();
+        when(userRepo.findByEmail(userEmail)).thenReturn(Optional.of(user));
+
+        service.sendHabitNotification(userName, userEmail);
         verify(javaMailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendHabitNotification_ExpectedNotFound() {
+        String userName = "test user name";
+        String userEmail = "test user email";
+
+        String expectedErrorMessage = ErrorMessage.USER_NOT_FOUND_BY_EMAIL + userEmail;
+        when(userRepo.findByEmail(userEmail)).thenThrow(new NotFoundException(expectedErrorMessage));
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> service.sendHabitNotification(userName, userEmail));
+
+        assertEquals(expectedErrorMessage, ex.getMessage());
     }
 
     @Test

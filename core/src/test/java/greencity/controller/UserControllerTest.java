@@ -7,6 +7,7 @@ import greencity.TestConst;
 import static greencity.constant.AppConstant.AUTHORIZATION;
 
 import greencity.constant.AppConstant;
+import greencity.constant.ErrorMessage;
 import greencity.converters.UserArgumentResolver;
 import greencity.dto.PageableAdvancedDto;
 import greencity.dto.filter.FilterUserDto;
@@ -21,14 +22,14 @@ import greencity.dto.user.UserUpdateDto;
 import greencity.dto.user.UserVO;
 import greencity.enums.EmailNotification;
 import greencity.enums.Role;
+import greencity.exception.exceptions.WrongIdException;
+import greencity.exception.handler.CustomExceptionHandler;
 import greencity.repository.UserRepo;
 import greencity.service.UserService;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,15 +38,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -57,6 +54,9 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -77,6 +77,8 @@ class UserControllerTest {
     @Mock
     private UserRepo userRepo;
     private ObjectMapper objectMapper;
+    @Mock
+    private ErrorAttributes errorAttributes;
 
     @BeforeEach
     void setup() {
@@ -84,6 +86,7 @@ class UserControllerTest {
             .standaloneSetup(userController)
             .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                 new UserArgumentResolver(userService, new ModelMapper()))
+                .setControllerAdvice(new CustomExceptionHandler(errorAttributes))
             .build();
         objectMapper = new ObjectMapper();
     }
@@ -253,37 +256,31 @@ class UserControllerTest {
 
     @Test
     void updateUserProfilePictureTest() throws Exception {
-        UserVO user = ModelUtils.getUserVO();
         Principal principal = mock(Principal.class);
-
-        String json = "{\n"
-            + "\t\"id\": 1,\n"
-            + "\t\"profilePicturePath\": \"ima\""
-            + "}";
-        String accessToken = "accessToken";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION, accessToken);
-        MockMultipartFile jsonFile = new MockMultipartFile("userProfilePictureDto", "",
-            "application/json", json.getBytes());
-
         when(principal.getName()).thenReturn("testmail@gmail.com");
-        when(userService.updateUserProfilePicture(null, "testmail@gmail.com",
-            "test")).thenReturn(user);
+        UserVO user = ModelUtils.getUserVO();
+
+        MockMultipartFile base64File = new MockMultipartFile("base64", "base64",
+                MediaType.TEXT_PLAIN_VALUE, "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==".getBytes());
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "image.png",
+                MediaType.IMAGE_PNG_VALUE, "image data".getBytes());
+
+        when(userService.updateUserProfilePicture(any(), any(), any())).thenReturn(user);
 
         MockMultipartHttpServletRequestBuilder builder =
-            MockMvcRequestBuilders.multipart(userLink + "/profilePicture");
+                multipart(userLink + "/profilePicture");
         builder.with(request -> {
             request.setMethod("PATCH");
             return request;
         });
 
-        this.mockMvc.perform(builder
-            .file(jsonFile)
-            .headers(headers)
-            .principal(principal)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        mockMvc.perform(builder
+                        .file(base64File)
+                        .file(imageFile)
+                        .principal(principal)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -309,6 +306,31 @@ class UserControllerTest {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1))
             .andExpect(status().isOk());
         verify(userService).checkIfTheUserIsOnline(1L);
+    }
+
+    @Test
+    void checkIfTheUserIsOnlineTest_IsNotFound() throws Exception {
+        Long userId = 111L;
+
+        doThrow(new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId))
+                .when(userService).checkIfTheUserIsOnline(userId);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("timestamp", "timestamp");
+        map.put("trace", "trace");
+        map.put("path", "path");
+        map.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(map);
+
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", userId))
+                .andExpect(status().isNotFound());
+    }
+  
+    @Test
+    void checkIfTheUserIsOnlineTest_IsBadRequest() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(userService);
     }
 
     @Test

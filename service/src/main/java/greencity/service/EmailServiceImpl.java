@@ -76,6 +76,10 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendChangePlaceStatusEmail(String authorName, String placeName,
         String placeStatus, String authorEmail) {
+        if (userRepo.findByEmail(authorEmail).isEmpty()) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + authorEmail);
+        }
+
         log.info(LogMessage.IN_SEND_CHANGE_PLACE_STATUS_EMAIL, placeName);
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.CLIENT_LINK, clientLink);
@@ -125,18 +129,22 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendCreatedNewsForAuthor(EcoNewsForSendEmailDto newDto) {
+        String authorEmail = newDto.getAuthor().getEmail();
+        if (userRepo.findByEmail(authorEmail).isEmpty()) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + authorEmail);
+        }
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.ECO_NEWS_LINK, ecoNewsLink);
         model.put(EmailConstants.NEWS_RESULT, newDto);
         try {
             model.put(EmailConstants.UNSUBSCRIBE_LINK, serverLink + "/newSubscriber/unsubscribe?email="
-                + URLEncoder.encode(newDto.getAuthor().getEmail(), StandardCharsets.UTF_8.toString())
+                + URLEncoder.encode(authorEmail, StandardCharsets.UTF_8.toString())
                 + "&unsubscribeToken=" + newDto.getUnsubscribeToken());
         } catch (UnsupportedEncodingException e) {
             log.error(e.getMessage());
         }
         String template = createEmailTemplate(model, EmailConstants.NEWS_RECEIVE_EMAIL_PAGE);
-        sendEmail(newDto.getAuthor().getEmail(), EmailConstants.CREATED_NEWS, template);
+        sendEmail(authorEmail, EmailConstants.CREATED_NEWS, template);
     }
 
     /**
@@ -246,7 +254,11 @@ public class EmailServiceImpl implements EmailService {
     public void sendHabitNotification(String name, String email) {
         String subject = "Notification about not marked habits";
         String content = "Dear " + name + ", you haven't marked any habit during last 3 days";
-        sendEmail(email, subject, content);
+        if (userRepo.findByEmail(email).isPresent()) {
+            sendEmail(email, subject, content);
+        } else {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email);
+        }
     }
 
     @Override
