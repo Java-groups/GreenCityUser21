@@ -330,6 +330,13 @@ class UserControllerTest {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", userId))
                 .andExpect(status().isNotFound());
     }
+  
+    @Test
+    void checkIfTheUserIsOnlineTest_IsBadRequest() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(userService);
+    }
 
     @Test
     void getUserProfileStatistics() throws Exception {
