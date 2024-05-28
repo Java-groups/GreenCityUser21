@@ -49,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "refreshTokenValidTimeInMinutes=1440",
         "tokenKey=secretTokenKey"
 })
+
 @ActiveProfiles("dev")
 public class UserControllerWithSecurityConfigTest {
     private static final String userLink = "/user";
@@ -101,5 +102,37 @@ public class UserControllerWithSecurityConfigTest {
     void deleteUserProfilePicture_isOk() throws Exception {
         mockMvc.perform(patch(userLink + "/deleteProfilePicture"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void updateUserProfilePicture_isUnauthorized() throws Exception {
+        mockMvc.perform(patch(userLink + "/profilePicture")
+                .with(anonymous()))
+                .andExpect(status().isUnauthorized());
+    }
+  
+    @Test
+    @WithMockUser(username = "Admin", roles = "ADMIN")
+    void checkIfTheUserIsOnline_isOk() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1L))
+                .andExpect(status().isOk());
+        verify(userService).checkIfTheUserIsOnline(1L);
+    }
+  
+    @Test
+    @WithMockUser(username = "Admin", roles = "ADMIN")
+    void checkIfTheUserIsOnline_isBadRequest() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(userService);
+    }
+  
+    @Test
+    @WithMockUser(username = "User", roles = "USER")
+    void checkIfTheUserIsOnline_isForbidden() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1L))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(userService);
     }
 }
