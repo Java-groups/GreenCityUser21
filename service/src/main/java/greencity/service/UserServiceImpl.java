@@ -1,5 +1,6 @@
 package greencity.service;
 
+import greencity.constant.AppConstant;
 import greencity.constant.UpdateConstants;
 import greencity.dto.ubs.UbsTableCreationDto;
 import greencity.dto.user.*;
@@ -161,11 +162,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO findByEmail(String email) {
-        Optional<User> optionalUser = userRepo.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            throw new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email);
-        }
-        return modelMapper.map(optionalUser.get(), UserVO.class);
+        return Optional.of(email)
+                .filter(e -> e.matches(AppConstant.VALIDATION_EMAIL))
+                .map(e -> userRepo.findByEmail(e)
+                        .map(user -> modelMapper.map(user, UserVO.class))
+                        .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + e)))
+                .orElseThrow(() -> new BadRequestException("Invalid email format: " + email));
     }
 
     /**
