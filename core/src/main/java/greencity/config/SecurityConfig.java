@@ -97,6 +97,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((req, resp, exc) -> resp.sendError(
                                 SC_FORBIDDEN, "You don't have authorities.")))
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/static/css/**", "/static/img/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
@@ -133,7 +134,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, USER_LINK,
                                 "/user/shopping-list-items/habits/{habitId}/shopping-list",
                                 "/user/{userId}/{habitId}/custom-shopping-list-items/available",
-                                "/user/{userId}/profile/", "/user/isOnline/{userId}/",
+                                "/user/{userId}/profile/",
                                 "/user/{userId}/profileStatistics/",
                                 "/user/userAndSixFriendsWithOnlineStatus",
                                 "/user/userAndAllFriendsWithOnlineStatus",

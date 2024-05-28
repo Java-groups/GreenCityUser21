@@ -85,4 +85,12 @@ public class UserControllerWithSecurityConfigTest {
                 .andExpect(status().isUnauthorized());
         verify(userService, times(0)).getEmailNotificationsStatuses();
     }
+
+    @Test
+    @WithMockUser(username = "User", roles = "USER")
+    void checkIfTheUserIsOnline_isForbidden() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1L))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(userService);
+    }
 }
