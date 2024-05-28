@@ -15,8 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -27,6 +31,10 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import static greencity.enums.UserStatus.DEACTIVATED;
+import java.security.Principal;
+import java.util.Collections;
+
+import static greencity.enums.Role.ROLE_ADMIN;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
@@ -45,7 +53,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "refreshTokenValidTimeInMinutes=1440",
         "tokenKey=secretTokenKey"
 })
-class UserControllerWithSecurityConfigTest {
+
+@ActiveProfiles("dev")
+public class UserControllerWithSecurityConfigTest {
     private static final String userLink = "/user";
 
     private MockMvc mockMvc;
@@ -89,6 +99,21 @@ class UserControllerWithSecurityConfigTest {
                         .with(anonymous()))
                 .andExpect(status().isUnauthorized());
         verify(userService, times(0)).getEmailNotificationsStatuses();
+    }
+
+    @Test
+    @WithMockUser(username = "testmail@mail.com", roles = "ADMIN")
+    void deleteUserProfilePicture_isOk() throws Exception {
+        mockMvc.perform(patch(userLink + "/deleteProfilePicture"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void updateUserProfilePicture_isUnauthorized() throws Exception {
+        mockMvc.perform(patch(userLink + "/profilePicture")
+                .with(anonymous()))
+                .andExpect(status().isUnauthorized());
     }
   
     @Test

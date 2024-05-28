@@ -56,6 +56,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -255,37 +256,31 @@ class UserControllerTest {
 
     @Test
     void updateUserProfilePictureTest() throws Exception {
-        UserVO user = ModelUtils.getUserVO();
         Principal principal = mock(Principal.class);
-
-        String json = "{\n"
-            + "\t\"id\": 1,\n"
-            + "\t\"profilePicturePath\": \"ima\""
-            + "}";
-        String accessToken = "accessToken";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION, accessToken);
-        MockMultipartFile jsonFile = new MockMultipartFile("userProfilePictureDto", "",
-            "application/json", json.getBytes());
-
         when(principal.getName()).thenReturn("testmail@gmail.com");
-        when(userService.updateUserProfilePicture(null, "testmail@gmail.com",
-            "test")).thenReturn(user);
+        UserVO user = ModelUtils.getUserVO();
+
+        MockMultipartFile base64File = new MockMultipartFile("base64", "base64",
+                MediaType.TEXT_PLAIN_VALUE, "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==".getBytes());
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "image.png",
+                MediaType.IMAGE_PNG_VALUE, "image data".getBytes());
+
+        when(userService.updateUserProfilePicture(any(), any(), any())).thenReturn(user);
 
         MockMultipartHttpServletRequestBuilder builder =
-            MockMvcRequestBuilders.multipart(userLink + "/profilePicture");
+                multipart(userLink + "/profilePicture");
         builder.with(request -> {
             request.setMethod("PATCH");
             return request;
         });
 
-        this.mockMvc.perform(builder
-            .file(jsonFile)
-            .headers(headers)
-            .principal(principal)
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        mockMvc.perform(builder
+                        .file(base64File)
+                        .file(imageFile)
+                        .principal(principal)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
     }
 
     @Test

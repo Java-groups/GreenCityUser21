@@ -30,7 +30,7 @@ public class EmailController {
      * @author Taras Kavkalo
      */
     @PostMapping("/addEcoNews")
-    public ResponseEntity<Object> addEcoNews(@RequestBody EcoNewsForSendEmailDto message) {
+    public ResponseEntity<Object> addEcoNews(@RequestBody @Valid EcoNewsForSendEmailDto message) {
         emailService.sendCreatedNewsForAuthor(message);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

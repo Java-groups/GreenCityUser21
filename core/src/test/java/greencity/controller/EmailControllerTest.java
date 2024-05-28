@@ -70,7 +70,7 @@ class EmailControllerTest {
                 "\"source\":\"string\"," +
                 "\"author\":{\"id\":0,\"name\":\"string\",\"email\":\"test.email@gmail.com\" }," +
                 "\"title\":\"string\"," +
-                "\"text\":\"string\"}";
+                "\"text\":\"string123456789012345678\"}";
 
         mockPerform(content, "/addEcoNews");
 
@@ -83,11 +83,11 @@ class EmailControllerTest {
     }
 
     @Test
-    void addEcoNewsTest_NotFound() throws Exception {
+    void addEcoNews_isBadRequest() throws Exception {
         String content = "{\n" +
                 "\"author\": {\n" +
-                "\"email\": \"Test34211@gmail.com\",\n" +
-                "\"id\": 15,\n" +
+                "\"email\": \"Test3421gmail.com\",\n" +
+                "\"id\": 154,\n" +
                 "\"name\": \"Test1526435\"\n" +
                 "},\n" +
                 "\"creationDate\": \"2023-08-23T11:46:06.482Z\",\n" +
@@ -96,6 +96,27 @@ class EmailControllerTest {
                 "\"text\": \"Test1241254125125125124\",\n" +
                 "\"title\": \"Test1111\",\n" +
                 "\"unsubscribeToken\": \"string\"\n" +
+                "}";
+        mockMvc.perform(post(LINK + "/addEcoNews")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content))
+                .andExpect(status().isBadRequest());
+    }
+  
+  @Test
+    void addEcoNewsTest_NotFound() throws Exception {
+        String content = "{\n" +
+                ""author": {\n" +
+                ""email": "Test34211@gmail.com",\n" +
+                ""id": 15,\n" +
+                ""name": "Test1526435"\n" +
+                "},\n" +
+                ""creationDate": "2023-08-23T11:46:06.482Z",\n" +
+                ""imagePath": "string",\n" +
+                ""source": "string",\n" +
+                ""text": "Test1241254125125125124",\n" +
+                ""title": "Test1111",\n" +
+                ""unsubscribeToken": "string"\n" +
                 "}";
 
         ObjectMapper mapper = new ObjectMapper();
