@@ -7,6 +7,7 @@ import greencity.TestConst;
 import static greencity.constant.AppConstant.AUTHORIZATION;
 
 import greencity.constant.AppConstant;
+import greencity.constant.ErrorMessage;
 import greencity.converters.UserArgumentResolver;
 import greencity.dto.PageableAdvancedDto;
 import greencity.dto.filter.FilterUserDto;
@@ -21,14 +22,14 @@ import greencity.dto.user.UserUpdateDto;
 import greencity.dto.user.UserVO;
 import greencity.enums.EmailNotification;
 import greencity.enums.Role;
+import greencity.exception.exceptions.WrongIdException;
+import greencity.exception.handler.CustomExceptionHandler;
 import greencity.repository.UserRepo;
 import greencity.service.UserService;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -55,6 +57,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,6 +77,8 @@ class UserControllerTest {
     @Mock
     private UserRepo userRepo;
     private ObjectMapper objectMapper;
+    @Mock
+    private ErrorAttributes errorAttributes;
 
     @BeforeEach
     void setup() {
@@ -78,6 +86,7 @@ class UserControllerTest {
             .standaloneSetup(userController)
             .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                 new UserArgumentResolver(userService, new ModelMapper()))
+                .setControllerAdvice(new CustomExceptionHandler(errorAttributes))
             .build();
         objectMapper = new ObjectMapper();
     }
@@ -297,6 +306,31 @@ class UserControllerTest {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1))
             .andExpect(status().isOk());
         verify(userService).checkIfTheUserIsOnline(1L);
+    }
+
+    @Test
+    void checkIfTheUserIsOnlineTest_IsNotFound() throws Exception {
+        Long userId = 111L;
+
+        doThrow(new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId))
+                .when(userService).checkIfTheUserIsOnline(userId);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("timestamp", "timestamp");
+        map.put("trace", "trace");
+        map.put("path", "path");
+        map.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(map);
+
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", userId))
+                .andExpect(status().isNotFound());
+    }
+  
+    @Test
+    void checkIfTheUserIsOnlineTest_IsBadRequest() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(userService);
     }
 
     @Test
