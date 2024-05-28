@@ -106,17 +106,17 @@ class EmailControllerTest {
   @Test
     void addEcoNewsTest_NotFound() throws Exception {
         String content = "{\n" +
-                ""author": {\n" +
-                ""email": "Test34211@gmail.com",\n" +
-                ""id": 15,\n" +
-                ""name": "Test1526435"\n" +
+                "\"author\": {\n" +
+                "\"email\": \"Test34211@gmail.com\",\n" +
+                "\"id\": 15,\n" +
+                "\"name\": \"Test1526435\"\n" +
                 "},\n" +
-                ""creationDate": "2023-08-23T11:46:06.482Z",\n" +
-                ""imagePath": "string",\n" +
-                ""source": "string",\n" +
-                ""text": "Test1241254125125125124",\n" +
-                ""title": "Test1111",\n" +
-                ""unsubscribeToken": "string"\n" +
+                "\"creationDate\": \"2023-08-23T11:46:06.482Z\",\n" +
+                "\"imagePath\": \"string\",\n" +
+                "\"source\": \"string\",\n" +
+                "\"text\": \"Test1241254125125125124\",\n" +
+                "\"title\": \"Test1111\",\n" +
+                "\"unsubscribeToken\": \"string\"\n" +
                 "}";
 
         ObjectMapper mapper = new ObjectMapper();

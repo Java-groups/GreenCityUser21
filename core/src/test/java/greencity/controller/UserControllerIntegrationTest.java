@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = UserApplication.class)
 @WebAppConfiguration
-@ActiveProfiles("test")
+@ActiveProfiles("dev")
 public class UserControllerIntegrationTest {
     private static final String userLink = "/user";
 
