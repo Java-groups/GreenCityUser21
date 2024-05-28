@@ -9,6 +9,7 @@ import greencity.dto.PageableAdvancedDto;
 import greencity.dto.PageableDto;
 import greencity.dto.UbsCustomerDto;
 import greencity.dto.filter.FilterUserDto;
+import greencity.dto.language.LanguageVO;
 import greencity.dto.shoppinglist.CustomShoppingListItemResponseDto;
 import greencity.dto.ubs.UbsTableCreationDto;
 import greencity.dto.user.*;
@@ -77,6 +78,7 @@ class UserServiceImplTest {
         .emailNotification(EmailNotification.DISABLED)
         .lastActivityTime(LocalDateTime.of(2020, 10, 10, 20, 10, 10))
         .dateOfRegistration(LocalDateTime.now())
+        .language(Language.builder().id(1L).code("ua").build())
         .build();
 
     private User user1 = User.builder()
@@ -93,6 +95,7 @@ class UserServiceImplTest {
         .emailNotification(EmailNotification.DISABLED)
         .lastActivityTime(LocalDateTime.of(2020, 10, 10, 20, 10, 10))
         .dateOfRegistration(LocalDateTime.now())
+        .languageVO(LanguageVO.builder().id(1L).code("ua").build())
         .build();
     private User user2 = User.builder()
         .id(2L)
@@ -103,6 +106,7 @@ class UserServiceImplTest {
         .emailNotification(EmailNotification.DISABLED)
         .lastActivityTime(LocalDateTime.of(2020, 10, 10, 20, 10, 10))
         .dateOfRegistration(LocalDateTime.now())
+        .language(Language.builder().id(1L).code("ua").build())
         .build();
     private UserVO userVO2 =
         UserVO.builder()
@@ -114,6 +118,7 @@ class UserServiceImplTest {
             .emailNotification(EmailNotification.DISABLED)
             .lastActivityTime(LocalDateTime.of(2020, 10, 10, 20, 10, 10))
             .dateOfRegistration(LocalDateTime.now())
+            .languageVO(LanguageVO.builder().id(1L).code("ua").build())
             .build();
     private UbsCustomerDto ubsCustomerDto =
         UbsCustomerDto.builder()
@@ -174,12 +179,13 @@ class UserServiceImplTest {
         when(modelMapper.map(Optional.of(user2), UserVO.class)).thenReturn(userVO2);
         when(userRepo.findById(userId)).thenReturn(Optional.of(user));
         when(modelMapper.map(user, UserVO.class)).thenReturn(userVO);
+        when(modelMapper.map(userVO, User.class)).thenReturn(user);
         when(userRepo.save(any())).thenReturn(user);
 
         UserStatusDto value = new UserStatusDto();
         value.setUserStatus(DEACTIVATED);
         when(modelMapper.map(user, UserStatusDto.class)).thenReturn(value);
-        assertEquals(DEACTIVATED, userService.updateStatus(userId, DEACTIVATED, any()).getUserStatus());
+        assertEquals(DEACTIVATED, userService.updateStatus(userId, DEACTIVATED, user2.getEmail()).getUserStatus());
     }
 
     @Test
