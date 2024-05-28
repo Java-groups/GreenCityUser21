@@ -1,7 +1,9 @@
 package greencity.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import greencity.ModelUtils;
 import greencity.config.SecurityConfig;
+import greencity.dto.user.UserStatusDto;
 import greencity.repository.UserRepo;
 import greencity.security.jwt.JwtTool;
 import greencity.service.EmailService;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,11 +26,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import static greencity.enums.UserStatus.DEACTIVATED;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -84,5 +89,41 @@ public class UserControllerWithSecurityConfigTest {
                         .with(anonymous()))
                 .andExpect(status().isUnauthorized());
         verify(userService, times(0)).getEmailNotificationsStatuses();
+    }
+
+    @Test
+    @WithMockUser(username = "testAdmicMail@gmail.com", roles = "ADMIN")
+    void updateStatusTest_isOk() throws Exception {
+        UserStatusDto responseUserStatusDto = new UserStatusDto();
+        responseUserStatusDto.setId(1L);
+        responseUserStatusDto.setUserStatus(DEACTIVATED);
+
+        when(userService.updateStatus(1L, DEACTIVATED, "testAdmicMail@gmail.com"))
+                .thenReturn(responseUserStatusDto);
+
+        String content = "{\n"
+                + "  \"id\": 0,\n"
+                + "  \"userStatus\": \"DEACTIVATED\"\n"
+                + "}";
+
+        mockMvc.perform(patch(userLink + "/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk());
+
+        ObjectMapper mapper = new ObjectMapper();
+        UserStatusDto userStatusDto =
+                mapper.readValue(content, UserStatusDto.class);
+
+        verify(userService).updateStatus(userStatusDto.getId(),
+                userStatusDto.getUserStatus(), "testAdmicMail@gmail.com");
+    }
+
+    @Test
+    @WithAnonymousUser
+    void updateStatusTest_isUnauthorized() throws Exception {
+        mockMvc.perform(get(userLink + "/status"))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(userService);
     }
 }
