@@ -66,7 +66,7 @@ class EmailControllerWithSecurityConfigTest {
     }
 
     @Test
-    @WithMockUser(username = "TestUser", roles = "USER")
+    @WithMockUser(username = "TestAdmin", roles = "ADMIN")
     void sendHabitNotification_ReturnsIsOk() throws Exception {
         String content = "{" +
                 "\"email\":\"test.email@gmail.com\"," +
@@ -92,6 +92,20 @@ class EmailControllerWithSecurityConfigTest {
 
         sentPostRequest(content, "/sendHabitNotification")
                 .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    @WithMockUser(username = "TestUser", roles = "USER")
+    void sendHabitNotification_ReturnsIsForbidden() throws Exception {
+        String content = "{" +
+                "\"email\":\"test.email@gmail.com\"," +
+                "\"name\":\"String\"" +
+                "}";
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isForbidden());
 
         verifyNoInteractions(emailService);
     }

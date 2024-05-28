@@ -240,6 +240,28 @@ class EmailControllerTest {
         verifyNoInteractions(emailService);
     }
 
+    @Test
+    void sendHabitNotification_ExpectedNotFound() throws Exception {
+        String content = "{" +
+                "\"email\":\"1111@gmail.com\"," +
+                "\"name\":\"String\"" +
+                "}";
+
+        String email = "1111@gmail.com";
+        String name = "String";
+
+        doThrow(new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email)).when(emailService).sendHabitNotification(name, email);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("timestamp", "timestamp");
+        map.put("trace", "trace");
+        map.put("path", "path");
+        map.put("message", "message");
+        when(errorAttributes.getErrorAttributes(any(), any())).thenReturn(map);
+
+        sentPostRequest(content, "/sendHabitNotification")
+                .andExpect(status().isNotFound());
+    }
+
     private ResultActions sentPostRequest(String content, String subLink) throws Exception {
         return mockMvc.perform(post(LINK + subLink)
                 .contentType(MediaType.APPLICATION_JSON)
