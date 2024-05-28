@@ -111,12 +111,13 @@ public class SecurityConfig {
                                 "/swagger-ui/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/error",
                                 "/ownSecurity/verifyEmail",
                                 "/ownSecurity/updateAccessToken",
                                 "/ownSecurity/restorePassword",
                                 "/googleSecurity",
                                 "/facebookSecurity/generateFacebookAuthorizeURL",
-                                "/facebookSecurity/facebook", "/user/emailNotifications",
+                                "/facebookSecurity/facebook",
                                 "/user/activatedUsersAmount",
                                 "/user/{userId}/habit/assign",
                                 "/token",
@@ -146,6 +147,7 @@ public class SecurityConfig {
                                 "/user/findUserByName/**",
                                 "/user/findByUuId",
                                 "/user/findUuidByEmail",
+                                "/user/emailNotifications",
                                 "/user/lang",
                                 "/user/createUbsRecord",
                                 "/user/{userId}/sixUserFriends/",
@@ -218,7 +220,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/user-rating")
                         .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
-                        .anyRequest().hasAnyRole(ADMIN));
+                        .anyRequest().hasRole(ADMIN));
         return http.build();
     }
 

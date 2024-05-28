@@ -482,7 +482,10 @@ public class UserController {
      * @author Orest Mamchuk
      */
     @Operation(summary = "update via UserManagement")
-    @ApiResponses(value = @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void updateUserManagement(
@@ -613,8 +616,7 @@ public class UserController {
      *
      * @param id        {@link Long} - user's id.
      * @param adminLang {@link String} - current administrator language.
-     * @return {@link List} of {@link String} - reasons for deactivation of the
-     *         current user.
+     * @return {@link List} of {@link String} - reasons for deactivation of the current user.
      * @author Vlad Pikhotskyi
      */
     @Operation(summary = "Get list reasons of deactivating the user")

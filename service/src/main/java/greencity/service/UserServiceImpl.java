@@ -10,25 +10,39 @@ import greencity.filters.SearchCriteria;
 import greencity.client.RestClient;
 import greencity.constant.ErrorMessage;
 import greencity.constant.LogMessage;
+import greencity.constant.UpdateConstants;
 import greencity.dto.PageableAdvancedDto;
 import greencity.dto.PageableDto;
 import greencity.dto.filter.FilterUserDto;
 import greencity.dto.shoppinglist.CustomShoppingListItemResponseDto;
+import greencity.dto.ubs.UbsTableCreationDto;
+import greencity.dto.user.*;
+import greencity.entity.Language;
 import greencity.entity.User;
+import greencity.entity.UserDeactivationReason;
 import greencity.entity.VerifyEmail;
 import greencity.enums.EmailNotification;
 import greencity.enums.Role;
 import greencity.enums.UserStatus;
 import greencity.exception.exceptions.*;
+import greencity.filters.SearchCriteria;
 import greencity.filters.UserSpecification;
 import greencity.repository.LanguageRepo;
 import greencity.repository.UserDeactivationRepo;
 import greencity.repository.UserRepo;
 import greencity.repository.options.UserFilter;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,12 +50,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The class provides implementation of the {@code UserService}.
@@ -79,9 +87,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO findById(Long id) {
-        User user = userRepo.findById(id)
+        return userRepo.findById(id)
+            .map(user -> modelMapper.map(user, UserVO.class))
             .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
-        return modelMapper.map(user, UserVO.class);
     }
 
     /**
@@ -90,10 +98,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageableDto<UserForListDto> findByPage(Pageable pageable) {
         Page<User> users = userRepo.findAll(pageable);
-        List<UserForListDto> userForListDtos =
-            users.getContent().stream()
-                .map(user -> modelMapper.map(user, UserForListDto.class))
-                .collect(Collectors.toList());
+        List<UserForListDto> userForListDtos = users.getContent().stream()
+            .map(user -> modelMapper.map(user, UserForListDto.class))
+            .toList();
         return new PageableDto<>(
             userForListDtos,
             users.getTotalElements(),
@@ -107,10 +114,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageableAdvancedDto<UserManagementDto> findUserForManagementByPage(Pageable pageable) {
         Page<User> users = userRepo.findAll(pageable);
-        List<UserManagementDto> userManagementDtos =
-            users.getContent().stream()
-                .map(user -> modelMapper.map(user, UserManagementDto.class))
-                .collect(Collectors.toList());
+        List<UserManagementDto> userManagementDtos = users.getContent().stream()
+            .map(user -> modelMapper.map(user, UserManagementDto.class))
+            .toList();
         return new PageableAdvancedDto<>(
             userManagementDtos,
             users.getTotalElements(),
@@ -175,8 +181,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<UserVO> findAll() {
-        return modelMapper.map(userRepo.findAll(), new TypeToken<List<UserVO>>() {
-        }.getType());
+        return userRepo.findAll().stream()
+            .map(user -> modelMapper.map(user, UserVO.class))
+            .toList();
     }
 
     /**
@@ -194,11 +201,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UbsTableCreationDto createUbsRecord(UserVO currentUser) {
-        User user = userRepo.findById(currentUser.getId()).orElseThrow(
-            () -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID));
-        String uuid = user.getUuid();
-
-        return UbsTableCreationDto.builder().uuid(uuid).build();
+        User user = userRepo.findById(currentUser.getId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID));
+        return UbsTableCreationDto.builder().uuid(user.getUuid()).build();
     }
 
     /**
@@ -207,23 +212,25 @@ public class UserServiceImpl implements UserService {
     private PageableAdvancedDto<UserManagementVO> buildPageableAdvanceDtoFromPage(Page<User> pageTags) {
         List<UserManagementVO> usersVOs = pageTags.getContent().stream()
             .map(t -> modelMapper.map(t, UserManagementVO.class))
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageableAdvancedDto<>(
             usersVOs,
-            pageTags.getTotalElements(), pageTags.getPageable().getPageNumber(),
-            pageTags.getTotalPages(), pageTags.getNumber(),
-            pageTags.hasPrevious(), pageTags.hasNext(),
-            pageTags.isFirst(), pageTags.isLast());
+            pageTags.getTotalElements(),
+            pageTags.getPageable().getPageNumber(),
+            pageTags.getTotalPages(),
+            pageTags.getNumber(),
+            pageTags.hasPrevious(),
+            pageTags.hasNext(),
+            pageTags.isFirst(),
+            pageTags.isLast());
     }
 
     /**
      * {@inheritDoc}
      */
     private UserSpecification buildSpecification(UserManagementViewDto userViewDto) {
-        List<SearchCriteria> searchCriteriaList = buildSearchCriteriaList(userViewDto);
-
-        return new UserSpecification(searchCriteriaList);
+        return new UserSpecification(buildSearchCriteriaList(userViewDto));
     }
 
     /**
@@ -244,7 +251,7 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     private void setValueIfNotEmpty(List<SearchCriteria> searchCriteria, String key, String value) {
-        if (!StringUtils.isEmpty(value)) {
+        if (StringUtils.hasText(value)) {
             searchCriteria.add(SearchCriteria.builder()
                 .key(key)
                 .type(key)
@@ -274,8 +281,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long findIdByEmail(String email) {
         log.info(LogMessage.IN_FIND_ID_BY_EMAIL, email);
-        return userRepo.findIdByEmail(email).orElseThrow(
-            () -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL));
+        return userRepo.findIdByEmail(email)
+            .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL));
     }
 
     /**
@@ -284,8 +291,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public String findUuIdByEmail(String email) {
         log.info(LogMessage.IN_FIND_UUID_BY_EMAIL, email);
-        return userRepo.findUuidByEmail(email).orElseThrow(
-            () -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL));
+        return userRepo.findUuidByEmail(email)
+            .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL));
     }
 
     /**
@@ -359,10 +366,9 @@ public class UserServiceImpl implements UserService {
      */
     public PageableDto<UserForListDto> getUsersByFilter(FilterUserDto filterUserDto, Pageable pageable) {
         Page<User> users = userRepo.findAll(new UserFilter(filterUserDto), pageable);
-        List<UserForListDto> userForListDtos =
-            users.getContent().stream()
-                .map(user -> modelMapper.map(user, UserForListDto.class))
-                .collect(Collectors.toList());
+        List<UserForListDto> userForListDtos = users.getContent().stream()
+            .map(user -> modelMapper.map(user, UserForListDto.class))
+            .toList();
         return new PageableDto<>(
             userForListDtos,
             users.getTotalElements(),
@@ -375,10 +381,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserUpdateDto getUserUpdateDtoByEmail(String email) {
-        return modelMapper.map(
-            userRepo.findByEmail(email)
-                .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email)),
-            UserUpdateDto.class);
+        return userRepo.findByEmail(email)
+            .map(user -> modelMapper.map(user, UserUpdateDto.class))
+            .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
     }
 
     /**
@@ -386,8 +391,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserUpdateDto update(UserUpdateDto dto, String email) {
-        User user = userRepo
-            .findByEmail(email)
+        User user = userRepo.findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
         user.setName(dto.getName());
         user.setEmailNotification(dto.getEmailNotification());
@@ -477,10 +481,8 @@ public class UserServiceImpl implements UserService {
      * @author Marian Datsko
      */
     @Override
-    public UserVO updateUserProfilePicture(MultipartFile image, String email,
-        String base64) {
-        User user = userRepo
-            .findByEmail(email)
+    public UserVO updateUserProfilePicture(MultipartFile image, String email, String base64) {
+        User user = userRepo.findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
         if (base64 != null) {
             image = modelMapper.map(base64, MultipartFile.class);
@@ -502,8 +504,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deleteUserProfilePicture(String email) {
-        User user = userRepo
-            .findByEmail(email)
+        User user = userRepo.findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
         user.setProfilePicturePath(null);
         userRepo.save(user);
@@ -525,8 +526,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public String saveUserProfile(UserProfileDtoRequest userProfileDtoRequest, String email) {
-        User user = userRepo
-            .findByEmail(email)
+        User user = userRepo.findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
         user.setName(userProfileDtoRequest.getName());
         user.setCity(userProfileDtoRequest.getCity());
@@ -545,8 +545,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserProfileDtoResponse getUserProfileInformation(Long userId) {
-        User user = userRepo
-            .findById(userId)
+        User user = userRepo.findById(userId)
             .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId));
         return modelMapper.map(user, UserProfileDtoResponse.class);
     }
@@ -607,8 +606,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDeactivationReasonDto deactivateUser(Long id, List<String> userReasons) {
-        User foundUser =
-            userRepo.findById(id).orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
+        User foundUser = userRepo.findById(id)
+            .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
         foundUser.setUserStatus(UserStatus.DEACTIVATED);
         userRepo.save(foundUser);
         String reasons = userReasons.stream().map(Object::toString).collect(Collectors.joining("/"));
@@ -643,12 +642,16 @@ public class UserServiceImpl implements UserService {
         List<String> result = null;
         List<String> forAll = List.of(reasons.split("/"));
         if (lang.equals("en")) {
-            result = forAll.stream().filter(s -> s.contains("{en}"))
-                .map(filterEn -> filterEn.replace("{en}", "").trim()).collect(Collectors.toList());
+            result = forAll.stream()
+                .filter(s -> s.contains("{en}"))
+                .map(filterEn -> filterEn.replace("{en}", "").trim())
+                .toList();
         }
         if (lang.equals("ua")) {
-            result = forAll.stream().filter(s -> s.contains("{ua}"))
-                .map(filterEn -> filterEn.replace("{ua}", "").trim()).collect(Collectors.toList());
+            result = forAll.stream()
+                .filter(s -> s.contains("{ua}"))
+                .map(filterEn -> filterEn.replace("{ua}", "").trim())
+                .toList();
         }
         return result;
     }
@@ -656,8 +659,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserActivationDto setActivatedStatus(Long id) {
-        User foundUser =
-            userRepo.findById(id).orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
+        User foundUser = userRepo.findById(id)
+            .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
         foundUser.setUserStatus(UserStatus.ACTIVATED);
         userRepo.save(foundUser);
         return UserActivationDto.builder()
@@ -712,7 +715,7 @@ public class UserServiceImpl implements UserService {
         Page<User> page = userRepo.searchBy(paging, query);
         List<UserManagementDto> users = page.stream()
             .map(user -> modelMapper.map(user, UserManagementDto.class))
-            .collect(Collectors.toList());
+            .toList();
         return new PageableAdvancedDto<>(
             users,
             page.getTotalElements(),
@@ -732,7 +735,7 @@ public class UserServiceImpl implements UserService {
     public List<UserVO> findAllByEmailNotification(EmailNotification emailNotification) {
         return userRepo.findAllByEmailNotification(emailNotification).stream()
             .map(user -> modelMapper.map(user, UserVO.class))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -757,9 +760,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepo.findById(id)
             .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID));
 
-        boolean isAdmin = user.getRole().equals(Role.ROLE_ADMIN);
-
-        if (isAdmin) {
+        if (user.getRole().equals(Role.ROLE_ADMIN)) {
             return modelMapper.map(user, UserVO.class);
         }
 
