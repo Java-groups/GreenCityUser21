@@ -100,5 +100,5 @@ class UserControllerWithSecurityConfigTest {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(userService);
-
+    }
 }
