@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "refreshTokenValidTimeInMinutes=1440",
         "tokenKey=secretTokenKey"
 })
-public class UserControllerWithSecurityConfigTest {
+class UserControllerWithSecurityConfigTest {
     private static final String userLink = "/user";
 
     private MockMvc mockMvc;
@@ -88,9 +88,17 @@ public class UserControllerWithSecurityConfigTest {
 
     @Test
     @WithMockUser(username = "Admin", roles = "ADMIN")
+    void checkIfTheUserIsOnline_isOk() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1L))
+                .andExpect(status().isOk());
+        verify(userService).checkIfTheUserIsOnline(1L);
+    }
+  
+    @Test
+    @WithMockUser(username = "Admin", roles = "ADMIN")
     void checkIfTheUserIsOnline_isBadRequest() throws Exception {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(userService);
-    }
+
 }
