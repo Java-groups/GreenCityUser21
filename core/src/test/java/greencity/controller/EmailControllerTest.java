@@ -301,6 +301,7 @@ class EmailControllerTest {
         String content = "{" +
             "\"name\":\"String\"," +
             "\"email\":\"String@gmail.com\"," +
+                "\"language\":\"en\"," +
             "\"violationDescription\":\"string string\"" +
             "}";
 
