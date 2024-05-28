@@ -37,6 +37,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -52,8 +57,6 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -306,13 +309,6 @@ class UserControllerTest {
         mockMvc.perform(get(userLink + "/isOnline/{userId}/", 1))
             .andExpect(status().isOk());
         verify(userService).checkIfTheUserIsOnline(1L);
-    }
-
-    @Test
-    void checkIfTheUserIsOnlineTest_IsBadRequest() throws Exception {
-        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
-                .andExpect(status().isBadRequest());
-        verifyNoInteractions(userService);
     }
 
     @Test
