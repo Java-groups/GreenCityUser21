@@ -93,4 +93,12 @@ class UserControllerWithSecurityConfigTest {
                 .andExpect(status().isOk());
         verify(userService).checkIfTheUserIsOnline(1L);
     }
+  
+    @Test
+    @WithMockUser(username = "Admin", roles = "ADMIN")
+    void checkIfTheUserIsOnline_isBadRequest() throws Exception {
+        mockMvc.perform(get(userLink + "/isOnline/{userId}/", "badRequest"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(userService);
+
 }
