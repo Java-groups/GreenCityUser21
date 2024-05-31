@@ -124,7 +124,9 @@ public class SecurityConfig {
                                 "/socket/**",
                                 "/user/findAllByEmailNotification",
                                 "/user/checkByUuid",
-                                "/user/get-user-rating")
+                                "/user/get-user-rating",
+                                "/friends",
+                                "/friends/user/{userId}")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/ownSecurity/signUp",
