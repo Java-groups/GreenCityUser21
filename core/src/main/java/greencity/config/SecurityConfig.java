@@ -124,9 +124,7 @@ public class SecurityConfig {
                                 "/socket/**",
                                 "/user/findAllByEmailNotification",
                                 "/user/checkByUuid",
-                                "/user/get-user-rating",
-                                "/friends",
-                                "/friends/user/{userId}")
+                                "/user/get-user-rating")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/ownSecurity/signUp",
@@ -155,6 +153,10 @@ public class SecurityConfig {
                                 "/user/{userId}/sixUserFriends/",
                                 "/ownSecurity/password-status",
                                 "/user/emailNotifications")
+                        .hasAnyRole(USER, ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
+                        .requestMatchers(HttpMethod.GET,
+                                "/friends",
+                                "/friends/user/{userId}")
                         .hasAnyRole(USER, ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                         .requestMatchers(HttpMethod.POST, USER_LINK,
                                 "/user/shopping-list-items",
