@@ -237,4 +237,16 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
      * @return - return true if User exists and false if not.
      */
     boolean existsUserByEmail(String email);
+
+    /**
+     * Method that selects all friends of current user
+     *
+     * @param userId - current logged user
+     * @return - return list of User friends
+     */
+    @Query(nativeQuery = true,
+    value = "SELECT * FROM users u WHERE u.id IN (SELECT friend_id AS id FROM users_friends WHERE user_id = :userId)")
+    Page<User> getAllFriendsOfUserIdPage(long userId, Pageable pageable);
+
+
 }

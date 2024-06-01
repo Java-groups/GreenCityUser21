@@ -155,8 +155,7 @@ public class SecurityConfig {
                                 "/user/emailNotifications")
                         .hasAnyRole(USER, ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                         .requestMatchers(HttpMethod.GET,
-                                "/friends",
-                                "/friends/user/{userId}")
+                                "/friends")
                         .hasAnyRole(USER, ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                         .requestMatchers(HttpMethod.POST, USER_LINK,
                                 "/user/shopping-list-items",

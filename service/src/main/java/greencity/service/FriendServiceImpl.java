@@ -4,28 +4,42 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.friends.UserFriendDto;
 import greencity.dto.user.UserManagementDto;
+import greencity.entity.User;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.mapping.UserFriendDtoMapper;
 import greencity.repository.UserRepo;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class FriendServiceImpl implements FriendService{
     private final UserRepo userRepo;
+    private final ModelMapper modelMapper;
 
     @Override
-    public PageableDto<UserFriendDto> findAllFriendsOfUser(long userId, String name) {
+    public PageableDto<UserFriendDto> getAllFriendsOfUser(long userId, Pageable pageable) {
         validateUserExistence(userId);
-        return null;
+
+        Page<User> friends =userRepo.getAllFriendsOfUserIdPage(userId, pageable);
+
+        List<UserFriendDto> friendList =
+                friends.stream().map(friend -> modelMapper.map(friend, UserFriendDto.class))
+                        .toList();
+
+        return new PageableDto<>(
+                friendList,
+                friends.getTotalElements(),
+                friends.getPageable().getPageNumber(),
+                friends.getTotalPages());
     }
 
-    @Override
-    public PageableDto<UserManagementDto> findUserFriendsByUserId(Pageable page, long userId) {
-        return null;
-    }
 
     private void validateUserExistence(long userId) {
         if (!userRepo.existsById(userId)) {
