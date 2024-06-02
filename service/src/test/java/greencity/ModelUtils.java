@@ -100,7 +100,6 @@ public class ModelUtils {
             .lastActivityTime(LocalDateTime.now())
             .verifyEmail(new VerifyEmail())
             .dateOfRegistration(LocalDateTime.now())
-                .userFriends(List.of(User.builder().id(2L).name("Friend Named").email("some@ukr.ner").build()))
             .build();
     }
 
