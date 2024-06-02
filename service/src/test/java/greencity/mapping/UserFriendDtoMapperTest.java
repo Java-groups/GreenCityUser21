@@ -28,6 +28,6 @@ class UserFriendDtoMapperTest {
         UserFriendDto actual = mapper.convert(user);
 
         assertEquals(expected, actual);
-       
+
     }
 }
