@@ -249,4 +249,14 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
     Page<User> getAllFriendsOfUserIdPage(long userId, Pageable pageable);
 
 
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true,
+            value = "DELETE FROM users_friends WHERE (user_id = :userId AND friend_id = :friendId)")
+    void deleteUserFriendById(Long userId, Long friendId);
+
+    @Query(nativeQuery = true,
+            value = "SELECT EXISTS(SELECT * FROM users_friends WHERE ("
+                    + "user_id = :userId AND friend_id = :friendId))")
+    boolean isFriend(Long userId, Long friendId);
 }

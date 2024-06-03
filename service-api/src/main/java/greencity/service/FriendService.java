@@ -9,4 +9,5 @@ import org.springframework.data.domain.Pageable;
 public interface FriendService {
     PageableDto<UserFriendDto> getAllFriendsOfUser(long userId, Pageable pageable);
 
-    }
+    void deleteFriendOfUser(Long id, Long friendId);
+}

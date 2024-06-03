@@ -3,10 +3,8 @@ package greencity.service;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.friends.UserFriendDto;
-import greencity.dto.user.UserManagementDto;
 import greencity.entity.User;
 import greencity.exception.exceptions.NotFoundException;
-import greencity.mapping.UserFriendDtoMapper;
 import greencity.repository.UserRepo;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -15,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -38,6 +35,20 @@ public class FriendServiceImpl implements FriendService{
                 friends.getTotalElements(),
                 friends.getPageable().getPageNumber(),
                 friends.getTotalPages());
+    }
+
+    @Override
+    public void deleteFriendOfUser(Long userId, Long friendId) {
+        validateUserExistence(userId);
+        validateUserExistence(friendId);
+        validateFriendsExistence(userId,friendId);
+        userRepo.deleteUserFriendById(userId, friendId);
+    }
+
+    private void validateFriendsExistence(Long userId, Long friendId) {
+        if(!userRepo.isFriend(userId,friendId)){
+            throw new NotFoundException(ErrorMessage.USER_FRIEND_NOT_FOUND +  ": " + userId + " and " + friendId);
+        }
     }
 
 

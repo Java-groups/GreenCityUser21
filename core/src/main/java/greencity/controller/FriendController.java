@@ -43,4 +43,25 @@ public class FriendController {
                 .body(friendService.getAllFriendsOfUser( userVO.getId(), page));
     }
 
+
+    @Operation(summary = "Delete friend for Current User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.BAD_REQUEST))),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.UNAUTHORIZED))),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND,
+                    content = @Content(examples = @ExampleObject(HttpStatuses.NOT_FOUND)))
+    })
+    @DeleteMapping("/deleteFriend/{friendId}")
+    public ResponseEntity<UserFriendDto> deleteFriendForUser(
+            @Parameter(hidden = true) @CurrentUser UserVO userVO,
+            @Parameter @PathVariable long friendId) {
+        friendService.deleteFriendOfUser( userVO.getId(), friendId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .build();
+    }
+
 }
