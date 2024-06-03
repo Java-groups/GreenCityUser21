@@ -7,7 +7,9 @@ import greencity.dto.friends.UserFriendDto;
 import greencity.dto.user.UserVO;
 import greencity.entity.User;
 import greencity.enums.Role;
+import greencity.exception.exceptions.NotFoundException;
 import greencity.repository.UserRepo;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,8 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.longThat;
+import static org.mockito.Mockito.*;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageImpl;
@@ -77,5 +79,15 @@ class FriendServiceImplTest {
         verify(userRepo).existsById(userId);
         verify(userRepo).getAllFriendsOfUserIdPage(userId, pageable);
 
+    }
+
+    @Test
+    @DisplayName("Test that deletion of Friend that is not in friends list is not successfull")
+    void deleteNonExistentFriendOfUser(){
+        long userId = 1L;
+        long friendId = 2L;
+
+        assertThrows(NotFoundException.class, () -> friendService.deleteFriendOfUser(userId,friendId));
+        verify(userRepo,  times(0)).deleteUserFriendById(userId,friendId);
     }
 }

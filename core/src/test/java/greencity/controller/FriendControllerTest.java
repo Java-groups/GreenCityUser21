@@ -5,10 +5,13 @@ import greencity.ModelUtils;
 import greencity.TestConst;
 import greencity.converters.UserArgumentResolver;
 import greencity.dto.user.UserVO;
+import greencity.entity.Language;
+import greencity.entity.User;
 import greencity.repository.UserRepo;
 import greencity.service.FriendService;
 import greencity.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,9 +26,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,4 +78,22 @@ class FriendControllerTest {
 
         verify(friendService).getAllFriendsOfUser(userVO.getId(), pageable);
     }
+
+    @Test
+    @DisplayName("Delete non_Existing friend")
+    void deleteFriendForUserTest() throws Exception{
+
+        Principal principal = mock(Principal.class);
+        when(principal.getName()).thenReturn(TestConst.EMAIL);
+        UserVO userVO = ModelUtils.getUserVO();
+        when(userService.findByEmail(principal.getName())).thenReturn(userVO);
+
+
+        mockMvc.perform(delete( friendLink + "/deleteFriend/" + 2L )
+                        .principal(principal))
+                .andExpect(status().isOk());
+        verify(friendService).deleteFriendOfUser(userVO.getId(),2L);
+
+    }
+
 }
