@@ -161,6 +161,7 @@ public class SecurityConfig {
                                 "/user/shopping-list-items",
                                 "/user/{userId}/habit",
                                 "/ownSecurity/set-password",
+                                "/ownSecurity/reset-password",
                                 "/email/sendReport",
                                 "/email/sendHabitNotification",
                                 "/email/addEcoNews",
